@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор фактической доходности</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .settings-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .setting-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .setting-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .amounts-section {
+            margin-bottom: 30px;
+        }
+
+        .amounts-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .amounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .amount-input {
+            position: relative;
+        }
+
+        .amount-input label {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .amount-input input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .amount-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .results-table th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95em;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .results-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .positive {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .summary-panel {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+        }
+
+        .summary-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-item label {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .summary-item .value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .formula-info {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .formula-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .formula-info p {
+            color: #856404;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧮 Калькулятор фактической доходности</h1>
+            <p>Расчёт остатка после учёта комиссии и вычетов</p>
+        </header>
+
+        <div class="content">
+            <div class="formula-info">
+                <h3>📊 Формула расчёта:</h3>
+                <p>
+                    <strong>Шаг 1:</strong> Сумма с комиссией = Исходная сумма × (1 + Комиссия%)<br>
+                    <strong>Шаг 2:</strong> Остаток после вычета = Сумма с комиссией × (1 - Вычет%)<br>
+                    <strong>Шаг 3:</strong> Итоговый остаток = Остаток после вычета - Потеря с заявки
+                </p>
+            </div>
+
+            <div class="settings-panel">
+                <div class="setting-group">
+                    <label for="commission">Комиссия для клиента (%)</label>
+                    <input type="number" id="commission" value="20" step="0.1" min="0">
+                </div>
+                <div class="setting-group">
+                    <label for="deduction">Вычет при оплате (%)</label>
+                    <input type="number" id="deduction" value="16.5" step="0.1" min="0" max="100">
+                </div>
+                <div class="setting-group">
+                    <label for="lossPerRequest">Потеря с 1 заявки (₽)</label>
+                    <input type="number" id="lossPerRequest" value="0" step="0.01" min="0">
+                </div>
+                <div class="setting-group">
+                    <label for="requestCount">Расчётное количество заявок</label>
+                    <input type="number" id="requestCount" value="1" step="1" min="1">
+                </div>
+            </div>
+
+            <div class="amounts-section">
+                <h2>💰 Исходные суммы для расчёта</h2>
+                <div class="amounts-grid" id="amountsGrid">
+                    <!-- Amount inputs will be generated here -->
+                </div>
+            </div>
+
+            <button class="btn-calculate" onclick="calculate()">🔄 Рассчитать</button>
+
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Исходная сумма</th>
+                        <th>С комиссией (+<span id="headerCommission">20</span>%)</th>
+                        <th>После вычета (-<span id="headerDeduction">16.5</span>%)</th>
+                        <th>Потеря с заявки</th>
+                        <th>Итоговый остаток</th>
+                        <th>Фактическая доходность</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- Results will be inserted here -->
+                </tbody>
+            </table>
+
+            <div class="summary-panel" id="summaryPanel">
+                <h2>📈 Общая сводка</h2>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <label>Общий объём исходных сумм</label>
+                        <div class="value" id="totalOriginal">0 ₽</div>
+                    </div>
+                    <div class="summary-item">
+                        <label>Общий остаток после всех операций</label>
+                        <div class="value" id="totalRemaining">0 ₽</div>
+                    </div>
+                    <div class="summary-item">
+                        <label>Общая потеря с заявок</label>
+                        <div class="value" id="totalLoss">0 ₽</div>
+                    </div>
+                    <div class="summary-item">
+                        <label>Средняя фактическая доходность</label>
+                        <div class="value" id="avgProfitability">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize amount inputs
+        function initAmountInputs() {
+            const grid = document.getElementById('amountsGrid');
+            grid.innerHTML = '';
+            
+            const defaultAmounts = [
+                1000, 5000, 10000, 25000, 50000,
+                100000, 250000, 500000, 1000000, 5000000
+            ];
+            
+            defaultAmounts.forEach((amount, index) => {
+                const div = document.createElement('div');
+                div.className = 'amount-input';
+                div.innerHTML = `
+                    <label for="amount${index + 1}">Сумма #${index + 1}</label>
+                    <input type="number" id="amount${index + 1}" value="${amount}" step="1" min="0" placeholder="Введите сумму">
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Format number as currency
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        // Format percentage
+        function formatPercent(num) {
+            return num.toFixed(2) + '%';
+        }
+
+        // Main calculation function
+        function calculate() {
+            // Get settings
+            const commission = parseFloat(document.getElementById('commission').value) || 0;
+            const deduction = parseFloat(document.getElementById('deduction').value) || 0;
+            const lossPerRequest = parseFloat(document.getElementById('lossPerRequest').value) || 0;
+            const requestCount = parseInt(document.getElementById('requestCount').value) || 1;
+            
+            // Update table headers
+            document.getElementById('headerCommission').textContent = commission;
+            document.getElementById('headerDeduction').textContent = deduction;
+            
+            // Get all amounts
+            const amounts = [];
+            for (let i = 1; i <= 10; i++) {
+                const amount = parseFloat(document.getElementById(`amount${i}`).value) || 0;
+                amounts.push(amount);
+            }
+            
+            // Calculate and display results
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            let totalOriginal = 0;
+            let totalRemaining = 0;
+            let totalLoss = 0;
+            let totalProfitability = 0;
+            
+            amounts.forEach((originalAmount, index) => {
+                // Step 1: Add commission
+                const withCommission = originalAmount * (1 + commission / 100);
+                
+                // Step 2: Apply deduction
+                const afterDeduction = withCommission * (1 - deduction / 100);
+                
+                // Step 3: Subtract loss per request (multiplied by request count)
+                const totalLossForThisAmount = lossPerRequest * requestCount;
+                const finalRemaining = afterDeduction - totalLossForThisAmount;
+                
+                // Calculate profitability
+                const profitability = originalAmount > 0 ? ((finalRemaining - originalAmount) / originalAmount) * 100 : 0;
+                
+                // Update totals
+                totalOriginal += originalAmount;
+                totalRemaining += finalRemaining;
+                totalLoss += totalLossForThisAmount;
+                totalProfitability += profitability;
+                
+                // Create row
+                const tr = document.createElement('tr');
+                const profitabilityClass = profitability >= 0 ? 'positive' : 'negative';
+                
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${formatCurrency(originalAmount)}</td>
+                    <td>${formatCurrency(withCommission)}</td>
+                    <td>${formatCurrency(afterDeduction)}</td>
+                    <td>${formatCurrency(totalLossForThisAmount)}</td>
+                    <td><strong>${formatCurrency(finalRemaining)}</strong></td>
+                    <td class="${profitabilityClass}">${formatPercent(profitability)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+            
+            // Update summary
+            const avgProfitability = amounts.length > 0 ? totalProfitability / amounts.length : 0;
+            
+            document.getElementById('totalOriginal').textContent = formatCurrency(totalOriginal);
+            document.getElementById('totalRemaining').textContent = formatCurrency(totalRemaining);
+            document.getElementById('totalLoss').textContent = formatCurrency(totalLoss);
+            
+            const avgProfitElement = document.getElementById('avgProfitability');
+            avgProfitElement.textContent = formatPercent(avgProfitability);
+            avgProfitElement.className = 'value ' + (avgProfitability >= 0 ? 'positive' : 'negative');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initAmountInputs();
+            calculate();
+            
+            // Add event listeners to inputs for real-time calculation
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', calculate);
+            });
+        });
+    </script>
+</body>
+</html>
