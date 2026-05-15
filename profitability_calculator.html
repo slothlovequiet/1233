@@ -1,375 +1,452 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор доходности</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Calc — Калькулятор сделок</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181c22;
+    --border: #1f2530;
+    --border2: #2a3040;
+    --text: #e8ecf2;
+    --muted: #5a6478;
+    --accent: #00d4aa;
+    --accent-dim: rgba(0,212,170,0.08);
+    --accent-dim2: rgba(0,212,170,0.15);
+    --red: #ff5b5b;
+    --red-dim: rgba(255,91,91,0.08);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.08);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
 
-        :root {
-            --bg: #1a1a1a;
-            --surface: #222222;
-            --surface2: #2a2a2a;
-            --border: #333333;
-            --text: #e8e8e8;
-            --muted: #888888;
-            --green: #4ade80;
-            --green-dim: rgba(74, 222, 128, 0.15);
-            --red: #f87171;
-            --amber: #fbbf24;
-        }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Manrope', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 32px 20px;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 48px 24px;
+  }
 
-        .container { max-width: 1100px; margin: 0 auto; }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 
-        .page-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-bottom: 28px;
-        }
+  /* Header */
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+  .header h1 {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header h1 span { color: var(--accent); }
+  .header p {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
 
-        /* Settings row */
-        .settings {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+  /* Params grid */
+  .params {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
 
-        .field-block { display: flex; flex-direction: column; gap: 8px; }
+  .param-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .param-group:focus-within {
+    border-color: var(--border2);
+  }
+  .param-group label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .input-row input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .input-row input:focus {
+    border-color: var(--accent);
+    background: var(--bg);
+  }
+  .input-row .unit {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 18px;
+  }
 
-        .field-label {
-            font-size: 0.8rem;
-            color: var(--muted);
-            font-weight: 500;
-            letter-spacing: 0.04em;
-        }
+  /* KPI bar */
+  .kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .kpi .kpi-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .kpi .kpi-val {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .kpi .kpi-val.green { color: var(--accent); }
+  .kpi .kpi-val.red { color: var(--red); }
+  .kpi .kpi-val.amber { color: var(--amber); }
 
-        .field-input-row { display: flex; align-items: stretch; }
+  /* Table */
+  .tbl-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 36px;
+  }
+  .tbl-head {
+    display: grid;
+    grid-template-columns: var(--cols);
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl-head div {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 8px;
+    text-align: right;
+  }
+  .tbl-head div:first-child { text-align: left; }
 
-        .field-input {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 8px 0 0 8px;
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.05rem;
-            font-weight: 500;
-            padding: 12px 16px;
-            width: 100%;
-            outline: none;
-            transition: border-color 0.2s;
-            -moz-appearance: textfield;
-        }
-        .field-input::-webkit-outer-spin-button,
-        .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .field-input:focus { border-color: #555; }
+  .tbl-body { }
+  .tbl-row {
+    display: grid;
+    grid-template-columns: var(--cols);
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .tbl-row:last-child { border-bottom: none; }
+  .tbl-row:hover { background: var(--surface2); }
+  .tbl-row div {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 11px 8px;
+    text-align: right;
+    color: var(--text);
+  }
+  .tbl-row div:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .tbl-row div.base-num { color: var(--text); font-weight: 600; }
+  .c-green { color: var(--accent) !important; }
+  .c-red { color: var(--red) !important; }
+  .c-amber { color: var(--amber) !important; }
 
-        .field-unit {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-left: none;
-            border-radius: 0 8px 8px 0;
-            padding: 12px 14px;
-            font-size: 0.85rem;
-            color: var(--muted);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-        }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    font-weight: 500;
+  }
+  .badge-green { background: var(--accent-dim2); color: var(--accent); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
 
-        /* Coefficients */
-        .coefficients {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
+  /* Summary block */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+  }
+  .summary h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .sum-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  .sum-item .s-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .sum-item .s-val {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .sum-item .s-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
 
-        .coeff-card {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 18px;
-        }
+  .divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+  }
 
-        .coeff-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-
-        .coeff-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        /* Table */
-        .table-wrap {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 16px;
-            overflow-x: auto;
-        }
-
-        table { width: 100%; border-collapse: collapse; min-width: 680px; }
-
-        thead th {
-            background: var(--surface2);
-            padding: 11px 16px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-align: right;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-        }
-        thead th:first-child { text-align: left; }
-
-        tbody tr {
-            border-bottom: 1px solid #2a2a2a;
-            transition: background 0.15s;
-        }
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: #262626; }
-
-        td {
-            padding: 13px 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.88rem;
-            text-align: right;
-            color: var(--text);
-        }
-        td:first-child { text-align: left; font-weight: 600; }
-
-        .col-commission { color: var(--amber); }
-        .col-deduction  { color: var(--red); }
-        .col-net        { font-weight: 600; }
-        .pos { color: var(--green); }
-        .neg { color: var(--red); }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3px 9px;
-            border-radius: 5px;
-            font-size: 0.76rem;
-            font-weight: 700;
-            min-width: 58px;
-        }
-        .badge-pos { background: var(--green-dim); color: var(--green); }
-        .badge-neg { background: rgba(248,113,113,0.15); color: var(--red); }
-
-        /* Summary */
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .summary-card {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px 20px;
-        }
-
-        .s-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
-
-        .s-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .s-green { color: var(--green); }
-        .s-red   { color: var(--red); }
-        .s-white { color: var(--text); }
-
-        @media (max-width: 700px) {
-            .coefficients { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 500px) {
-            .coefficients { grid-template-columns: 1fr; }
-            .settings { grid-template-columns: 1fr; }
-        }
-    </style>
+  @media (max-width: 600px) {
+    .tbl-wrap { overflow-x: auto; }
+    .tbl-head, .tbl-row { min-width: 680px; }
+  }
+</style>
 </head>
 <body>
-<div class="container">
-    <div class="page-title">Калькулятор фактической доходности</div>
+<div class="page">
 
-    <!-- Settings: только % + потери + заявки -->
-    <div class="settings">
-        <div class="field-block">
-            <div class="field-label">Комиссия клиента</div>
-            <div class="field-input-row">
-                <input class="field-input" type="number" id="clientCommission" value="20" step="0.1">
-                <div class="field-unit">%</div>
-            </div>
-        </div>
-        <div class="field-block">
-            <div class="field-label">Вычет при оплате</div>
-            <div class="field-input-row">
-                <input class="field-input" type="number" id="deductionRate" value="16.5" step="0.1">
-                <div class="field-unit">%</div>
-            </div>
-        </div>
-        <div class="field-block">
-            <div class="field-label">Потеря с 1 заявки</div>
-            <div class="field-input-row">
-                <input class="field-input" type="number" id="lossPerApp" value="0" step="1">
-                <div class="field-unit">₽</div>
-            </div>
-        </div>
-        <div class="field-block">
-            <div class="field-label">Расчётное кол-во заявок</div>
-            <div class="field-input-row">
-                <input class="field-input" type="number" id="appCount" value="10" min="1">
-                <div class="field-unit">шт</div>
-            </div>
-        </div>
-    </div>
+  <div class="header">
+    <h1>TRADE<span>CALC</span></h1>
+    <p>// калькулятор комиссий и потерь по сделкам</p>
+  </div>
 
-    <!-- Коэффициенты -->
-    <div class="coefficients">
-        <div class="coeff-card">
-            <div class="coeff-label">Коэффициент наценки</div>
-            <div class="coeff-value" id="coeffMarkup">×1.2000</div>
-        </div>
-        <div class="coeff-card">
-            <div class="coeff-label">Коэффициент вычета</div>
-            <div class="coeff-value" id="coeffDeduction">×0.8350</div>
-        </div>
-        <div class="coeff-card">
-            <div class="coeff-label">Итоговый коэффициент</div>
-            <div class="coeff-value" id="coeffFinal">×1.0020</div>
-        </div>
+  <!-- Params -->
+  <div class="params">
+    <div class="param-group">
+      <label>Комиссия клиента</label>
+      <div class="input-row">
+        <input type="number" id="comm" value="30" min="0" max="100" step="1">
+        <span class="unit">%</span>
+      </div>
     </div>
+    <div class="param-group">
+      <label>Процент трейдера</label>
+      <div class="input-row">
+        <input type="number" id="trader" value="18" min="0" max="100" step="0.1">
+        <span class="unit">%</span>
+      </div>
+    </div>
+    <div class="param-group" style="border-color: var(--border2); opacity: 0.8;">
+      <label>Вычет при оплате <span style="color:var(--accent);font-size:9px;margin-left:4px;">// авто</span></label>
+      <div class="input-row">
+        <span style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--accent);" id="deduct-display">13.85</span>
+        <span class="unit">%</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;">= трейдер% ÷ (1 + комиссия%)</div>
+    </div>
+    <div class="param-group">
+      <label>Потеря с 1 заявки</label>
+      <div class="input-row">
+        <input type="number" id="loss" value="500" min="0" step="1">
+        <span class="unit">₽</span>
+      </div>
+    </div>
+    <div class="param-group">
+      <label>Кол-во заявок</label>
+      <div class="input-row">
+        <input type="number" id="count" value="20" min="1" step="1">
+        <span class="unit">шт</span>
+      </div>
+    </div>
+  </div>
 
-    <!-- Таблица (суммы фиксированы) -->
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Исходная сумма</th>
-                    <th>+ комиссия</th>
-                    <th>Оплата клиента</th>
-                    <th>− вычет</th>
-                    <th>Итого на руках</th>
-                    <th>Разница</th>
-                    <th>%</th>
-                </tr>
-            </thead>
-            <tbody id="resultsBody"></tbody>
-        </table>
-    </div>
+  <!-- KPI bar -->
+  <div class="kpi-bar" id="kpi-bar"></div>
 
-    <!-- Итоги -->
-    <div class="summary">
-        <div class="summary-card">
-            <div class="s-label">Общий оборот</div>
-            <div class="s-value s-white" id="totalTurnover">0</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-label">Всего получено</div>
-            <div class="s-value s-white" id="totalReceived">0</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-label">Общие потери (заявки)</div>
-            <div class="s-value s-red" id="totalLosses">0</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-label">Итоговая прибыль</div>
-            <div class="s-value s-green" id="finalProfit">0</div>
-        </div>
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="--cols: 1.4fr 1.2fr 1.1fr 1.2fr 1.2fr 1.3fr 1.3fr;">
+      <div>Исходная сумма</div>
+      <div>К оплате</div>
+      <div>Вычет трейдера</div>
+      <div>После вычета</div>
+      <div>Потеря (заявок)</div>
+      <div>Итог чистый</div>
+      <div>Разница</div>
     </div>
+    <div class="tbl-body" id="rows"></div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <h3>// итоги по расчётным заявкам</h3>
+    <div class="sum-grid" id="summary-grid"></div>
+  </div>
+
 </div>
 
 <script>
-    // Фиксированные суммы сделок — редактировать здесь при необходимости
-    const AMOUNTS = [1000, 5000, 10000, 50000, 100000, 200000, 500000, 1000000, 2500000, 5000000];
+const amounts = [500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000];
 
-    function fmt(n) {
-        return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
-    }
+function fmt(n) {
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtInt(n) {
+  return Math.round(n).toLocaleString('ru-RU');
+}
 
-    function calculate() {
-        const comm  = parseFloat(document.getElementById('clientCommission').value) || 0;
-        const ded   = parseFloat(document.getElementById('deductionRate').value) || 0;
-        const loss  = parseFloat(document.getElementById('lossPerApp').value) || 0;
-        const count = parseInt(document.getElementById('appCount').value) || 0;
+function render() {
+  const comm    = parseFloat(document.getElementById('comm').value)   || 0;
+  const trader  = parseFloat(document.getElementById('trader').value) || 0;
+  const loss1   = parseFloat(document.getElementById('loss').value)   || 0;
+  const count   = parseInt(document.getElementById('count').value)    || 1;
 
-        const kMarkup = 1 + comm / 100;
-        const kDeduct = 1 - ded / 100;
-        const kFinal  = kMarkup * kDeduct;
+  const k1        = 1 + comm / 100;
+  // Вычет% от суммы к оплате = трейдер% / (1 + комиссия%)
+  // Проверка: withComm * deductPct = base * traderPct ✓
+  const deductPct = trader / k1;
+  const k2        = 1 - deductPct / 100;
+  const kfin      = k1 * k2;
+  const pct       = (kfin - 1) * 100;
+  const totalLoss = loss1 * count;
 
-        document.getElementById('coeffMarkup').textContent    = '×' + kMarkup.toFixed(4);
-        document.getElementById('coeffDeduction').textContent = '×' + kDeduct.toFixed(4);
-        document.getElementById('coeffFinal').textContent     = '×' + kFinal.toFixed(4);
+  // Обновить отображение авто-вычета
+  document.getElementById('deduct-display').textContent = deductPct.toFixed(4);
 
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = '';
+  // KPI bar
+  const kpiData = [
+    { label: 'Комиссия клиента', val: '+' + comm.toFixed(1) + '%  →  ×' + k1.toFixed(3), cls: 'green' },
+    { label: 'Доход трейдера', val: trader.toFixed(1) + '% от исходной', cls: '' },
+    { label: '% вычета от оплаты', val: deductPct.toFixed(4) + '%', cls: 'amber' },
+    { label: 'Прирост / убыток', val: (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', cls: pct >= 0 ? 'green' : 'red' },
+    { label: 'Потеря 1 заявки', val: '−' + fmt(loss1) + ' ₽', cls: 'amber' },
+    { label: 'Сумм. потеря (' + count + ' заявок)', val: '−' + fmt(totalLoss) + ' ₽', cls: 'red' },
+  ];
+  document.getElementById('kpi-bar').innerHTML = kpiData.map(k => `
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val ${k.cls}">${k.val}</div>
+    </div>
+  `).join('');
 
-        let totTurnover = 0, totReceived = 0, totProfit = 0;
+  // Table rows
+  const rows = document.getElementById('rows');
+  rows.innerHTML = '';
 
-        AMOUNTS.forEach(base => {
-            const withComm = base * kMarkup;
-            const deducted = withComm * (ded / 100);
-            const net      = withComm - deducted;
-            const diff     = net - base;
-            const pct      = base > 0 ? (diff / base * 100) : 0;
+  amounts.forEach(base => {
+    const withComm   = base * k1;
+    const deductAmt  = base * (trader / 100);   // трейдер% от исходной суммы
+    const afterDeduct = withComm - deductAmt;
+    const finalAmt   = afterDeduct - totalLoss;
+    const diff       = finalAmt - base;
+    const diffPct    = (diff / base * 100).toFixed(2);
+    const isPos      = diff >= 0;
+    const isFinalPos = finalAmt >= 0;
 
-            totTurnover += withComm;
-            totReceived += net;
-            totProfit   += diff;
+    const diffCls = isPos ? 'c-green' : 'c-red';
+    const diffBadge = isPos ? 'badge-green' : 'badge-red';
+    const finalCls = isFinalPos ? '' : 'c-red';
 
-            const pos = diff >= 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${fmt(base)}</td>
-                <td class="col-commission">${fmt(withComm)}</td>
-                <td>${fmt(withComm)}</td>
-                <td class="col-deduction">−${fmt(deducted)}</td>
-                <td class="col-net">${fmt(net)}</td>
-                <td class="${pos ? 'pos' : 'neg'}">${pos ? '+' : ''}${fmt(diff)}</td>
-                <td><span class="badge ${pos ? 'badge-pos' : 'badge-neg'}">${pos ? '+' : ''}${pct.toFixed(2)}%</span></td>
-            `;
-            tbody.appendChild(tr);
-        });
+    const row = document.createElement('div');
+    row.className = 'tbl-row';
+    row.style.setProperty('--cols', '1.4fr 1.2fr 1.1fr 1.2fr 1.2fr 1.3fr 1.3fr');
+    row.innerHTML = `
+      <div class="base-num">${fmt(base)} ₽</div>
+      <div class="c-green">+${fmt(withComm)} ₽</div>
+      <div class="c-red">−${fmt(deductAmt)} ₽</div>
+      <div>${fmt(afterDeduct)} ₽</div>
+      <div class="c-amber">−${fmt(totalLoss)} ₽</div>
+      <div class="${finalCls}" style="font-weight:600;">${fmt(finalAmt)} ₽</div>
+      <div class="${diffCls}">${isPos ? '+' : ''}${fmt(diff)} ₽<span class="badge ${diffBadge}">${isPos ? '+' : ''}${diffPct}%</span></div>
+    `;
+    rows.appendChild(row);
+  });
 
-        const totalLosses = loss * count;
-        const finalResult = totProfit - totalLosses;
+  const base2 = 10000;
+  const withComm2 = base2 * k1;
+  const afterDeduct2 = withComm2 - base2 * (trader / 100);
+  const finalAmt2 = afterDeduct2 - totalLoss;
+  const diff2 = finalAmt2 - base2;
+  const breakEven = kfin > 1 ? totalLoss / (kfin - 1) : 0;
 
-        document.getElementById('totalTurnover').textContent = fmt(totTurnover);
-        document.getElementById('totalReceived').textContent = fmt(totReceived);
-        document.getElementById('totalLosses').textContent   = '−' + fmt(totalLosses);
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="sum-item">
+      <div class="s-label">Пример: 10 000 ₽ → итог</div>
+      <div class="s-val" style="color:${finalAmt2 >= 0 ? 'var(--accent)' : 'var(--red)'};">${fmt(finalAmt2)} ₽</div>
+      <div class="s-sub">${diff2 >= 0 ? '+' : ''}${fmt(diff2)} ₽ от исходной</div>
+    </div>
+    <div class="divider"></div>
+    <div class="sum-item">
+      <div class="s-label">Суммарная потеря (${count} заявок)</div>
+      <div class="s-val" style="color:var(--red);">−${fmt(totalLoss)} ₽</div>
+      <div class="s-sub">${fmt(loss1)} ₽ × ${count} заявок</div>
+    </div>
+    <div class="divider"></div>
+    <div class="sum-item">
+      <div class="s-label">Точка безубыточности</div>
+      <div class="s-val" style="color:var(--amber);">${breakEven > 0 ? fmt(breakEven) + ' ₽' : 'N/A'}</div>
+      <div class="s-sub">мин. сумма сделки для покрытия потерь</div>
+    </div>
+  `;
+}
 
-        const el = document.getElementById('finalProfit');
-        el.textContent = (finalResult >= 0 ? '+' : '') + fmt(finalResult);
-        el.className   = 's-value ' + (finalResult >= 0 ? 's-green' : 's-red');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        calculate();
-        ['clientCommission', 'deductionRate', 'lossPerApp', 'appCount'].forEach(id => {
-            document.getElementById(id).addEventListener('input', calculate);
-        });
-    });
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', render));
+render();
 </script>
 </body>
 </html>
